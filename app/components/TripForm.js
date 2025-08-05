@@ -1,9 +1,6 @@
 'use client'
-import { Input } from 'postcss'
-import {useState} from 'react'
 
-export default function TripForm() {
-    const [dest, setDest] = useState([''])
+export default function TripForm({dest, setDest}) {
 
     const addDest = () => {
         setDest([...dest, ''])
