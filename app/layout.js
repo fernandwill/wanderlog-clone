@@ -1,4 +1,4 @@
-import './globals.css'
+import './app.css'
 
 export const metadata = {
   title: 'Wanderlog Clone',
