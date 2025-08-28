@@ -26,7 +26,7 @@ const User = sequelize.define("User", {
   },
   lastName: {
     type: DataTypes.STRING,
-    allowNull: true``
+    allowNull: true
   }
 }, {
     timestamps: true
