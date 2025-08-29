@@ -1,4 +1,4 @@
-const { Trip, Itinerary, Place, AISuggestion } = require('../models');
+const { Trip, Itinerary, Place } = require('../models');
 const { Op } = require('sequelize');
 
 const createTrip = async (req, res) => {
@@ -75,12 +75,6 @@ const getTripById = async (req, res) => {
             }
           ],
           order: [['day', 'ASC'], ['order', 'ASC']]
-        },
-        {
-          model: AISuggestion,
-          as: 'aiSuggestions',
-          where: { isAccepted: null },
-          required: false
         }
       ]
     });
