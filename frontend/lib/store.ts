@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import Cookies from 'js-cookie'
 
 interface User {
   id: number
@@ -15,6 +16,19 @@ interface AuthState {
   login: (user: User, token: string) => void
   logout: () => void
   updateUser: (user: Partial<User>) => void
+}
+
+// Custom storage that uses cookies
+const cookieStorage = {
+  getItem: (name: string) => {
+    return Cookies.get(name) || null
+  },
+  setItem: (name: string, value: string) => {
+    Cookies.set(name, value, { expires: 7, sameSite: 'strict' })
+  },
+  removeItem: (name: string) => {
+    Cookies.remove(name)
+  },
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -36,6 +50,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
+      storage: createJSONStorage(() => cookieStorage),
     }
   )
 )
