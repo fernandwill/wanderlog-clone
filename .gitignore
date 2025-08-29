@@ -1,28 +1,103 @@
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment files
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
 *.log
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+Desktop.ini
+
+# IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
 
 # Next.js
 .next/
 out/
 build/
 dist/
-
-# Next.js cache and build artifacts
 .next/cache/
-.next/static/webpack/
+.next/static/chunks/
+.next/static/css/
 .next/server/
+.next/server/chunks/
+.next/server/pages/
+.next/server/app/
+.next/server/middleware-manifest.json
+.next/server/middleware-react-loadable-manifest.json
+.next/server/react-loadable-manifest.json
+.next/server/build-manifest.json
+.next/server/app-build-manifest.json
+.next/server/prerender-manifest.json
+.next/server/images-manifest.json
+.next/server/routes-manifest.json
+.next/server/middleware-manifest.json
 .next/trace
-.next/prerender-manifest.json
 .next/app-build-manifest.json
+.next/prerender-manifest.json
 
 # Vercel
 .vercel/
 
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+lib/
+
+# Editor files
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files
+*.tmp
+*.temp
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+NTUSER.DAT*
+ntuser.dat*
+NTUSER.DAT*.LOG*
+ntuser.dat*.LOG*
