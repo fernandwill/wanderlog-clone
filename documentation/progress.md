@@ -46,6 +46,9 @@
 - [x] Implement responsive design for all screen sizes
 - [x] Add dark/light mode toggle (in progress)
 - [x] Create interactive maps for location visualization and routing
+- [x] Fix authentication redirect issues in login and register pages
+- [x] Fix email validation patterns for proper email format checking
+- [x] Update .gitignore to exclude .next directory and build artifacts
 
 ### Database Tasks
 - [x] Design and implement database schema
