@@ -3,7 +3,8 @@ import type { NextRequest } from 'next/server'
 
 // This middleware protects routes that require authentication
 export function authMiddleware(request: NextRequest) {
-  const token = request.cookies.get('token')
+  // Get token from cookies
+  const token = request.cookies.get('auth-storage')
   
   // If no token and trying to access protected routes, redirect to login
   if (!token && request.nextUrl.pathname.startsWith('/dashboard')) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -23,10 +23,17 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   
   const router = useRouter()
-  const login = useAuthStore((state) => state.login)
+  const { login, isAuthenticated } = useAuthStore()
   
   const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterForm>()
   const password = watch('password')
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, router])
 
   const onSubmit = async (data: RegisterForm) => {
     setIsLoading(true)
@@ -38,10 +45,13 @@ export default function RegisterPage() {
       const { user, token } = response.data
       
       login(user, token)
-      router.push('/dashboard')
+      
+      // Small delay to ensure state is updated before redirect
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 100)
     } catch (err: any) {
       setError(err.response?.data?.error || 'Registration failed')
-    } finally {
       setIsLoading(false)
     }
   }
@@ -101,7 +111,7 @@ export default function RegisterPage() {
                 {...register('email', { 
                   required: 'Email is required',
                   pattern: {
-                    value: /^\S+@\S+$/i,
+                    value: /^\S+@$\S+$/i,
                     message: 'Invalid email address'
                   }
                 })}

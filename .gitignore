@@ -5,3 +5,24 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Next.js cache and build artifacts
+.next/cache/
+.next/static/webpack/
+.next/server/
+.next/trace
+.next/prerender-manifest.json
+.next/app-build-manifest.json
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
