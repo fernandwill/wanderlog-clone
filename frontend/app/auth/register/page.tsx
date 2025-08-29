@@ -111,7 +111,7 @@ export default function RegisterPage() {
                 {...register('email', { 
                   required: 'Email is required',
                   pattern: {
-                    value: /^\S+@$\S+$/i,
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/i,
                     message: 'Invalid email address'
                   }
                 })}
