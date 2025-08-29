@@ -55,7 +55,6 @@ interface Trip {
   isPublic: boolean
   coverImage?: string
   itineraries?: any[]
-  aiSuggestions?: any[]
 }
 
 interface TripState {

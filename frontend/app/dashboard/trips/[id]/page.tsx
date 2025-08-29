@@ -8,33 +8,30 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { 
   MapPinIcon, 
   CalendarIcon, 
-  SparklesIcon, 
-  RouteIcon, 
   PlusIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  MapIcon,
+  ListBulletIcon
 } from '@heroicons/react/24/outline'
-import { tripsAPI, aiAPI } from '@/lib/api'
+import { tripsAPI } from '@/lib/api'
 import { useTripStore } from '@/lib/store'
+import TripMap from '@/components/map/TripMap'
+
+interface Place {
+  id: string
+  name: string
+  category: string
+  description?: string
+  latitude: number
+  longitude: number
+  address?: string
+}
 
 interface ItineraryItem {
   id: string
   day: number
   order: number
-  place: {
-    id: string
-    name: string
-    category: string
-    description?: string
-  }
-}
-
-interface AISuggestion {
-  id: string
-  type: string
-  suggestion: any
-  reasoning: string
-  confidence: number
-  isAccepted: boolean | null
+  place: Place
 }
 
 interface Trip {
@@ -48,7 +45,6 @@ interface Trip {
   isPublic: boolean
   coverImage?: string
   itineraries?: ItineraryItem[]
-  aiSuggestions?: AISuggestion[]
 }
 
 export default function TripDetailPage() {
@@ -56,6 +52,7 @@ export default function TripDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedDay, setSelectedDay] = useState(1)
+  const [mapView, setMapView] = useState(false)
   const router = useRouter()
   const { id } = useParams()
   
@@ -87,34 +84,9 @@ export default function TripDetailPage() {
     }
   }
 
-  const handleGenerateSuggestions = async () => {
-    if (!trip) return
-    
-    try {
-      const response = await aiAPI.generateSuggestions(trip.id, {
-        preferences: 'Any',
-        budget: trip.budget,
-        interests: 'General tourism'
-      })
-      
-      // Refresh trip data to get new suggestions
-      fetchTrip(trip.id)
-    } catch (err) {
-      console.error('Error generating suggestions:', err)
-    }
-  }
-
-  const handleOptimizeRoute = async () => {
-    if (!trip) return
-    
-    try {
-      const response = await aiAPI.optimizeRoute(trip.id)
-      
-      // Refresh trip data to get optimization
-      fetchTrip(trip.id)
-    } catch (err) {
-      console.error('Error optimizing route:', err)
-    }
+  const handlePlaceSelect = (placeId: string) => {
+    console.log('Selected place:', placeId)
+    // We could implement scrolling to the selected place in the list view
   }
 
   if (loading) {
@@ -229,18 +201,19 @@ export default function TripDetailPage() {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={handleGenerateSuggestions}
+                onClick={() => setMapView(!mapView)}
               >
-                <SparklesIcon className="h-4 w-4 mr-2" />
-                AI Suggestions
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleOptimizeRoute}
-              >
-                <RouteIcon className="h-4 w-4 mr-2" />
-                Optimize Route
+                {mapView ? (
+                  <>
+                    <ListBulletIcon className="h-4 w-4 mr-2" />
+                    List View
+                  </>
+                ) : (
+                  <>
+                    <MapIcon className="h-4 w-4 mr-2" />
+                    Map View
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -278,7 +251,7 @@ export default function TripDetailPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content - Itinerary */}
+          {/* Main Content - Itinerary or Map */}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -290,7 +263,9 @@ export default function TripDetailPage() {
                   </Button>
                 </CardTitle>
                 <CardDescription>
-                  Plan your activities for each day of your trip
+                  {mapView 
+                    ? "View your trip locations on the map" 
+                    : "Plan your activities for each day of your trip"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -308,107 +283,71 @@ export default function TripDetailPage() {
                   ))}
                 </div>
                 
-                {/* Itinerary Items */}
-                <div className="space-y-4">
-                  {dayItineraries.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-gray-500">No activities planned for this day yet</p>
-                      <Button 
-                        variant="outline" 
-                        className="mt-2"
-                        onClick={() => console.log('Add activity')}
-                      >
-                        <PlusIcon className="h-4 w-4 mr-2" />
-                        Add Activity
-                      </Button>
-                    </div>
-                  ) : (
-                    dayItineraries.map(item => (
-                      <div 
-                        key={item.id} 
-                        className="flex items-start p-4 border rounded-lg hover:bg-gray-50"
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center mr-4">
-                          <span className="text-primary-800 font-medium">{item.order + 1}</span>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{item.place.name}</h3>
-                          <p className="text-sm text-gray-500 capitalize">{item.place.category}</p>
-                          {item.place.description && (
-                            <p className="text-sm text-gray-600 mt-1">{item.place.description}</p>
-                          )}
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <span className="sr-only">Edit</span>
-                          ...
+                {/* Content based on view mode */}
+                {mapView ? (
+                  <TripMap 
+                    itineraryItems={trip.itineraries || []} 
+                    selectedDay={selectedDay}
+                    onPlaceSelect={handlePlaceSelect}
+                  />
+                ) : (
+                  /* Itinerary Items */
+                  <div className="space-y-4">
+                    {dayItineraries.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-500">No activities planned for this day yet</p>
+                        <Button 
+                          variant="outline" 
+                          className="mt-2"
+                          onClick={() => console.log('Add activity')}
+                        >
+                          <PlusIcon className="h-4 w-4 mr-2" />
+                          Add Activity
                         </Button>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      dayItineraries.map(item => (
+                        <div 
+                          key={item.id} 
+                          className="flex items-start p-4 border rounded-lg hover:bg-gray-50"
+                        >
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center mr-4">
+                            <span className="text-primary-800 font-medium">{item.order + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">{item.place.name}</h3>
+                            <p className="text-sm text-gray-500 capitalize">{item.place.category}</p>
+                            {item.place.description && (
+                              <p className="text-sm text-gray-600 mt-1">{item.place.description}</p>
+                            )}
+                          </div>
+                          <Button variant="ghost" size="sm">
+                            <span className="sr-only">Edit</span>
+                            ...
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
           
-          {/* Sidebar - AI Suggestions */}
+          {/* Sidebar - Trip Notes */}
           <div>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <SparklesIcon className="h-5 w-5 mr-2 text-yellow-500" />
-                  AI Suggestions
-                </CardTitle>
+                <CardTitle>Trip Notes</CardTitle>
                 <CardDescription>
-                  Personalized recommendations for your trip
+                  Add personal notes and reminders for your trip
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {trip.aiSuggestions && trip.aiSuggestions.length > 0 ? (
-                  <div className="space-y-4">
-                    {trip.aiSuggestions.slice(0, 3).map(suggestion => (
-                      <div 
-                        key={suggestion.id} 
-                        className="p-4 border rounded-lg bg-yellow-50"
-                      >
-                        <div className="flex justify-between">
-                          <h4 className="font-medium text-gray-900 capitalize">
-                            {suggestion.type} Suggestion
-                          </h4>
-                          <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                            {Math.round(suggestion.confidence * 100)}% confidence
-                          </span>
-                        </div>
-                        
-                        <p className="text-sm text-gray-600 mt-2">
-                          {suggestion.reasoning}
-                        </p>
-                        
-                        <div className="flex space-x-2 mt-3">
-                          <Button size="sm" variant="default">
-                            Accept
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Reject
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <SparklesIcon className="h-12 w-12 text-gray-400 mx-auto" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No suggestions yet</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Generate AI suggestions to get personalized recommendations.
-                    </p>
-                    <Button 
-                      className="mt-4"
-                      onClick={handleGenerateSuggestions}
-                    >
-                      Generate Suggestions
-                    </Button>
-                  </div>
-                )}
+                <div className="text-center py-8">
+                  <p className="text-gray-500 mb-4">No notes yet</p>
+                  <Button variant="outline">Add Note</Button>
+                </div>
               </CardContent>
             </Card>
           </div>

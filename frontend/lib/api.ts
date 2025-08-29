@@ -71,11 +71,3 @@ export const itineraryAPI = {
   remove: (id: string) => api.delete(`/itinerary/${id}`),
   reorder: (tripId: string, items: any[]) => api.put(`/itinerary/trips/${tripId}/reorder`, { items }),
 }
-
-// AI API
-export const aiAPI = {
-  generateSuggestions: (tripId: string, data: any) => api.post(`/ai/trips/${tripId}/suggestions`, data),
-  optimizeRoute: (tripId: string) => api.post(`/ai/trips/${tripId}/optimize`),
-  acceptSuggestion: (id: string) => api.put(`/ai/suggestions/${id}/accept`),
-  rejectSuggestion: (id: string) => api.put(`/ai/suggestions/${id}/reject`),
-}
