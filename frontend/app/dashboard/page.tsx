@@ -163,7 +163,7 @@ export default function DashboardPage() {
                   <div className="flex mt-4 space-x-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       <SparklesIcon className="h-3 w-3 mr-1" />
-                      AI Suggestions
+                      Smart Planning
                     </span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       <RouteIcon className="h-3 w-3 mr-1" />

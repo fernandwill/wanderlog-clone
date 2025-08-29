@@ -19,22 +19,14 @@
 - [x] Create Trip model with all required fields
 - [x] Create Place model with location and category
 - [x] Create Itinerary model for daily schedules
-- [x] Create AI Suggestion model for recommendations
 - [x] Define relationships between models
 - [x] Implement authentication endpoints
 - [x] Implement user profile endpoints
 - [x] Implement trip CRUD endpoints
 - [x] Implement place search and management endpoints
 - [x] Implement itinerary planning endpoints
-- [x] Implement AI suggestion endpoints
 - [x] Add input validation to all endpoints
 - [x] Implement proper error handling
-- [x] Integrate OpenAI API for travel suggestions
-- [x] Implement smart itinerary generation with optimized routing
-- [x] Create personalized place recommendation engine
-- [x] Implement intelligent routing between places
-- [x] Develop AI-powered travel tips and insights feature
-- [x] Implement place similarity and clustering algorithms
 
 ### Frontend Development
 - [x] Set up layout components (header, footer, navigation)
@@ -53,6 +45,7 @@
 - [x] Create trip detail page with itinerary view
 - [x] Implement responsive design for all screen sizes
 - [x] Add dark/light mode toggle (in progress)
+- [x] Create interactive maps for location visualization and routing
 
 ### Database Tasks
 - [x] Design and implement database schema
@@ -63,11 +56,9 @@
 ## In Progress Tasks
 
 ### Frontend Development
-- [ ] Create interactive maps for location visualization and routing
 - [ ] Implement photo gallery for trip documentation
 - [ ] Add drag-and-drop functionality for itineraries
 - [ ] Create social features (likes, comments, follows)
-- [ ] Implement AI suggestion visualization and selection
 - [ ] Add route optimization display with distance/time information
 
 ### Testing

@@ -20,8 +20,3 @@ export function authMiddleware(request: NextRequest) {
   
   return NextResponse.next()
 }
-
-// Configure which routes to run middleware on
-export const config = {
-  matcher: ['/dashboard/:path*', '/auth/:path*']
-}
