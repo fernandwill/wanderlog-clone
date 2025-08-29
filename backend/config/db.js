@@ -3,7 +3,7 @@ const {Sequelize} = require('sequelize');
 const sequelize = new Sequelize (
     process.env.DB_NAME || 'wanderlog',
     process.env.DB_USER || 'postgres',
-    process.env.DB_PASSWORD || 'postgres',
+    process.env.DB_PASSWORD || 'AirbusA330941',
     {
         host: process.env.DB_HOST || 'localhost',
         dialect: 'postgres',
