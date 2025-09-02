@@ -44,7 +44,8 @@ const Photo = sequelize.define("Photo", {
     }
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  tableName: 'Photos' // Explicitly specify table name
 });
 
 module.exports = Photo;

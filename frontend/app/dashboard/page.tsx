@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MapPinIcon, PlusIcon, SparklesIcon, RouteIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, PlusIcon, SparklesIcon, ArrowPathIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { tripsAPI } from '@/lib/api'
 
 interface Trip {
@@ -31,13 +31,9 @@ export default function DashboardPage() {
   const { user, isAuthenticated, logout } = useAuthStore()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login')
-      return
-    }
-
+    // Always fetch trips - will get user trips if authenticated, public trips if not
     fetchTrips()
-  }, [isAuthenticated, router])
+  }, [isAuthenticated])
 
   const fetchTrips = async () => {
     try {
@@ -69,9 +65,7 @@ export default function DashboardPage() {
     return `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
+  // Remove the authentication check - allow viewing public trips
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -85,10 +79,23 @@ export default function DashboardPage() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user?.username}</span>
-              <Button variant="outline" onClick={() => logout()}>
-                Sign Out
-              </Button>
+              {isAuthenticated ? (
+                <>
+                  <span className="text-gray-700">Welcome, {user?.username}</span>
+                  <Button variant="outline" onClick={() => logout()}>
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={() => router.push('/auth/login')}>
+                    Sign In
+                  </Button>
+                  <Button onClick={() => router.push('/auth/register')}>
+                    Sign Up
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -97,13 +104,19 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Trips</h1>
-            <p className="text-gray-600">Plan and organize your adventures</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isAuthenticated ? 'My Trips' : 'Public Trips'}
+            </h1>
+            <p className="text-gray-600">
+              {isAuthenticated ? 'Plan and organize your adventures' : 'Discover amazing travel experiences'}
+            </p>
           </div>
-          <Button onClick={handleCreateTrip}>
-            <PlusIcon className="h-4 w-4 mr-2" />
-            Create New Trip
-          </Button>
+          {isAuthenticated && (
+            <Button onClick={handleCreateTrip}>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Create New Trip
+            </Button>
+          )}
         </div>
 
         {error && (
@@ -130,13 +143,25 @@ export default function DashboardPage() {
         ) : trips.length === 0 ? (
           <div className="text-center py-12">
             <MapPinIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No trips yet</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by creating a new trip.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">
+              {isAuthenticated ? 'No trips yet' : 'No public trips available'}
+            </h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {isAuthenticated 
+                ? 'Get started by creating a new trip.' 
+                : 'Sign in to create and manage your own trips.'}
+            </p>
             <div className="mt-6">
-              <Button onClick={handleCreateTrip}>
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Create Your First Trip
-              </Button>
+              {isAuthenticated ? (
+                <Button onClick={handleCreateTrip}>
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Create Your First Trip
+                </Button>
+              ) : (
+                <Button onClick={() => router.push('/auth/login')}>
+                  Sign In to Create Trips
+                </Button>
+              )}
             </div>
           </div>
         ) : (
@@ -196,7 +221,7 @@ export default function DashboardPage() {
                       Smart Planning
                     </span>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      <RouteIcon className="h-3 w-3 mr-1" />
+                      <ArrowPathIcon className="h-3 w-3 mr-1" />
                       Optimized
                     </span>
                   </div>

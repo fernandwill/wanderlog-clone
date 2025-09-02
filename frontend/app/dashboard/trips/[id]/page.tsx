@@ -14,8 +14,8 @@ import {
   ListBulletIcon
 } from '@heroicons/react/24/outline'
 import { tripsAPI } from '@/lib/api'
-import { useTripStore } from '@/lib/store'
-import TripMap from '@/components/map/TripMap'
+import { useTripStore, useAuthStore } from '@/lib/store'
+import TripMap from '@/components/map/DynamicTripMap'
 import PhotoGallery from '@/components/PhotoGallery'
 
 interface Place {
@@ -61,6 +61,10 @@ export default function TripDetailPage() {
 
   useEffect(() => {
     if (id) {
+      // Check authentication status
+      const { token, isAuthenticated } = useAuthStore.getState()
+      console.log('Auth status:', { isAuthenticated, hasToken: !!token })
+      
       fetchTrip(id as string)
     }
   }, [id])
@@ -68,7 +72,11 @@ export default function TripDetailPage() {
   const fetchTrip = async (tripId: string) => {
     try {
       setLoading(true)
+      console.log('Fetching trip with ID:', tripId)
+      
       const response = await tripsAPI.getById(tripId)
+      console.log('Trip response:', response.data)
+      
       setTrip(response.data.trip)
       setCurrentTrip(response.data.trip)
       
@@ -77,9 +85,20 @@ export default function TripDetailPage() {
         const maxDay = Math.max(...response.data.trip.itineraries.map(item => item.day))
         // We'll handle day selection logic here
       }
-    } catch (err) {
-      setError('Failed to load trip details')
+    } catch (err: any) {
       console.error('Error fetching trip:', err)
+      console.error('Error response:', err.response?.data)
+      console.error('Error status:', err.response?.status)
+      
+      if (err.response?.status === 401) {
+        setError('Please log in to view this trip')
+      } else if (err.response?.status === 404) {
+        setError('Trip not found')
+      } else if (err.response?.status === 500) {
+        setError(`Server error: ${err.response?.data?.error || 'Internal server error'}`)
+      } else {
+        setError('Failed to load trip details')
+      }
     } finally {
       setLoading(false)
     }

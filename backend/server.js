@@ -38,6 +38,11 @@ app.get("/", (req, res) => {
   });
 });
 
+// Test endpoint without auth
+app.get("/api/test", (req, res) => {
+  res.json({ message: "Test endpoint working!" });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

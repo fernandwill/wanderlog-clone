@@ -48,7 +48,8 @@ const Trip = sequelize.define("Trip", {
     }
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  tableName: 'Trips' // Explicitly specify table name
 });
 
 module.exports = Trip;
