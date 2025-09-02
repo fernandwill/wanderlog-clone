@@ -35,7 +35,7 @@ export default function PhotoGallery({ tripId }: PhotoGalleryProps) {
     try {
       setLoading(true)
       const response = await photosAPI.getByTripId(tripId)
-      setPhotos(response.data.photos)
+      setPhotos(response.data.photos || [])
     } catch (error) {
       console.error('Error fetching photos:', error)
       toast({
@@ -65,12 +65,14 @@ export default function PhotoGallery({ tripId }: PhotoGalleryProps) {
       const response = await photosAPI.upload(formData)
       
       // Add the new photo to the list
-      setPhotos(prev => [response.data.photo, ...prev])
-      
-      toast({
-        title: 'Success',
-        description: 'Photo uploaded successfully',
-      })
+      if (response.data && response.data.photo) {
+        setPhotos(prev => [response.data.photo, ...prev])
+        
+        toast({
+          title: 'Success',
+          description: 'Photo uploaded successfully',
+        })
+      }
     } catch (error) {
       console.error('Error uploading photo:', error)
       toast({

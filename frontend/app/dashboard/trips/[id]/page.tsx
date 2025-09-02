@@ -69,12 +69,12 @@ export default function TripDetailPage() {
     try {
       setLoading(true)
       const response = await tripsAPI.getById(tripId)
-      setTrip(response.data)
-      setCurrentTrip(response.data)
+      setTrip(response.data.trip)
+      setCurrentTrip(response.data.trip)
       
       // Set the number of days in the trip
-      if (response.data.itineraries && response.data.itineraries.length > 0) {
-        const maxDay = Math.max(...response.data.itineraries.map(item => item.day))
+      if (response.data.trip.itineraries && response.data.trip.itineraries.length > 0) {
+        const maxDay = Math.max(...response.data.trip.itineraries.map(item => item.day))
         // We'll handle day selection logic here
       }
     } catch (err) {
