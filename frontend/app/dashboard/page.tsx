@@ -6,7 +6,7 @@ import { useAuthStore } from '@/lib/store'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { MapPinIcon, PlusIcon, SparklesIcon, RouteIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, PlusIcon, SparklesIcon, RouteIcon, PhotoIcon } from '@heroicons/react/24/outline'
 import { tripsAPI } from '@/lib/api'
 
 interface Trip {
@@ -17,6 +17,10 @@ interface Trip {
   endDate: string
   destination: string
   coverImage?: string
+  photos?: {
+    id: string
+    url: string
+  }[]
 }
 
 export default function DashboardPage() {
@@ -39,7 +43,7 @@ export default function DashboardPage() {
     try {
       setLoading(true)
       const response = await tripsAPI.getAll()
-      setTrips(response.data)
+      setTrips(response.data.trips)
     } catch (err) {
       setError('Failed to load trips')
       console.error('Error fetching trips:', err)
@@ -158,6 +162,32 @@ export default function DashboardPage() {
                     <p className="text-sm text-gray-500 line-clamp-2">
                       {trip.description}
                     </p>
+                  )}
+                  
+                  {/* Photo preview */}
+                  {trip.photos && trip.photos.length > 0 && (
+                    <div className="mt-3 relative">
+                      <div className="flex items-center text-xs text-gray-500 mb-1">
+                        <PhotoIcon className="h-3 w-3 mr-1" />
+                        <span>{trip.photos.length} photo{trip.photos.length > 1 ? 's' : ''}</span>
+                      </div>
+                      <div className="flex -space-x-2">
+                        {trip.photos.slice(0, 3).map((photo, index) => (
+                          <div key={photo.id} className="relative">
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${photo.url}`}
+                              alt="Trip photo"
+                              className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                            />
+                            {index === 2 && trip.photos.length > 3 && (
+                              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                +{trip.photos.length - 3}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   
                   <div className="flex mt-4 space-x-2">

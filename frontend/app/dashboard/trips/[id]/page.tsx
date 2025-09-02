@@ -16,6 +16,7 @@ import {
 import { tripsAPI } from '@/lib/api'
 import { useTripStore } from '@/lib/store'
 import TripMap from '@/components/map/TripMap'
+import PhotoGallery from '@/components/PhotoGallery'
 
 interface Place {
   id: string
@@ -252,7 +253,7 @@ export default function TripDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content - Itinerary or Map */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-8">
             <Card>
               <CardHeader>
                 <CardTitle className="flex justify-between items-center">
@@ -332,6 +333,9 @@ export default function TripDetailPage() {
                 )}
               </CardContent>
             </Card>
+            
+            {/* Photo Gallery */}
+            <PhotoGallery tripId={trip.id} />
           </div>
           
           {/* Sidebar - Trip Notes */}

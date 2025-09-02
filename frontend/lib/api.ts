@@ -74,3 +74,14 @@ export const itineraryAPI = {
   remove: (id: string) => api.delete(`/itinerary/${id}`),
   reorder: (tripId: string, items: any[]) => api.put(`/itinerary/trips/${tripId}/reorder`, { items }),
 }
+
+// Photos API
+export const photosAPI = {
+  upload: (formData: FormData) => api.post('/photos/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  getByTripId: (tripId: string) => api.get(`/photos/trip/${tripId}`),
+  delete: (id: string) => api.delete(`/photos/${id}`),
+}

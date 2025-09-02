@@ -1,4 +1,4 @@
-const { Trip, Itinerary, Place } = require('../models');
+const { Trip, Itinerary, Place, Photo } = require('../models');
 const { Op } = require('sequelize');
 
 const createTrip = async (req, res) => {
@@ -40,6 +40,12 @@ const getUserTrips = async (req, res) => {
               as: 'place'
             }
           ]
+        },
+        {
+          model: Photo,
+          as: 'photos',
+          limit: 1, // Only get one photo for preview
+          order: [['createdAt', 'DESC']]
         }
       ],
       order: [['createdAt', 'DESC']]
@@ -75,6 +81,11 @@ const getTripById = async (req, res) => {
             }
           ],
           order: [['day', 'ASC'], ['order', 'ASC']]
+        },
+        {
+          model: Photo,
+          as: 'photos',
+          order: [['createdAt', 'DESC']]
         }
       ]
     });
