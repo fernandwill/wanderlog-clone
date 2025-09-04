@@ -30,6 +30,27 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user, isAuthenticated, logout } = useAuthStore()
 
+  const testBackendConnection = async () => {
+    try {
+      const response = await fetch(process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:8000')
+      const data = await response.json()
+      console.log('Backend connection test:', data)
+      return true
+    } catch (err) {
+      console.error('Backend connection failed:', err)
+      return false
+    }
+  }
+
+  useEffect(() => {
+    // Test backend connection on component mount
+    testBackendConnection().then(isConnected => {
+      if (!isConnected) {
+        setError('Cannot connect to backend server. Please start the backend on port 8000.')
+      }
+    })
+  }, [])
+
   useEffect(() => {
     // Always fetch trips - will get user trips if authenticated, public trips if not
     fetchTrips()
@@ -38,11 +59,23 @@ export default function DashboardPage() {
   const fetchTrips = async () => {
     try {
       setLoading(true)
+      setError('') // Clear previous errors
+      console.log('Fetching trips from:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api')
       const response = await tripsAPI.getAll()
       setTrips(response.data.trips)
-    } catch (err) {
-      setError('Failed to load trips')
+    } catch (err: any) {
       console.error('Error fetching trips:', err)
+      
+      // More specific error handling
+      if (err.code === 'ECONNREFUSED' || err.message === 'Network Error') {
+        setError('Cannot connect to server. Please ensure the backend is running on port 8000.')
+      } else if (err.response?.status === 404) {
+        setError('API endpoint not found. Please check the backend configuration.')
+      } else if (err.response?.status >= 500) {
+        setError('Server error. Please try again later.')
+      } else {
+        setError(err.response?.data?.error || err.message || 'Failed to load trips')
+      }
     } finally {
       setLoading(false)
     }
@@ -121,7 +154,31 @@ export default function DashboardPage() {
 
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md mb-6">
-            {error}
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">Connection Error</h3>
+                <div className="mt-1 text-sm text-red-700">
+                  <p>{error}</p>
+                  {error.includes('backend') && (
+                    <div className="mt-2 text-xs">
+                      <p className="font-medium">To fix this:</p>
+                      <ol className="list-decimal list-inside mt-1 space-y-1">
+                        <li>Open a terminal</li>
+                        <li>Navigate to: <code className="bg-red-100 px-1 rounded">wanderlog-clone/backend</code></li>
+                        <li>Run: <code className="bg-red-100 px-1 rounded">npm run dev</code></li>
+                        <li>Wait for "Server running on port 8000" message</li>
+                        <li>Refresh this page</li>
+                      </ol>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -204,7 +261,7 @@ export default function DashboardPage() {
                               alt="Trip photo"
                               className="w-10 h-10 rounded-full object-cover border-2 border-white"
                             />
-                            {index === 2 && trip.photos.length > 3 && (
+                            {index === 2 && trip.photos && trip.photos.length > 3 && (
                               <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center text-white text-xs font-bold">
                                 +{trip.photos.length - 3}
                               </div>

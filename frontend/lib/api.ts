@@ -28,7 +28,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Handle both 401 (unauthorized) and 403 (forbidden/invalid token) errors
+    if (error.response?.status === 401 || 
+        (error.response?.status === 403 && 
+         error.response?.data?.error?.includes('Invalid or expired token'))) {
       const { logout } = useAuthStore.getState()
       logout()
       if (typeof window !== 'undefined') {

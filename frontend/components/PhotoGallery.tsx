@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { XMarkIcon, PhotoIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { photosAPI } from '@/lib/api'
 import { useToast } from '@/hooks/use-toast'
+import { useAuthStore } from '@/lib/store'
 
 interface Photo {
   id: string
@@ -26,6 +28,8 @@ export default function PhotoGallery({ tripId }: PhotoGalleryProps) {
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+  const { isAuthenticated, user, logout } = useAuthStore()
+  const router = useRouter()
 
   useEffect(() => {
     fetchPhotos()
@@ -34,15 +38,62 @@ export default function PhotoGallery({ tripId }: PhotoGalleryProps) {
   const fetchPhotos = async () => {
     try {
       setLoading(true)
+      
+      // Check if user is authenticated before making the request
+      if (!isAuthenticated) {
+        console.log('User not authenticated, skipping photo fetch')
+        setPhotos([])
+        return
+      }
+      
       const response = await photosAPI.getByTripId(tripId)
       setPhotos(response.data.photos || [])
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching photos:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load photos',
-        variant: 'destructive',
-      })
+      
+      // Handle specific error cases
+      if (error.response?.status === 403) {
+        const errorMessage = error.response?.data?.error || ''
+        
+        if (errorMessage.includes('Invalid or expired token') || errorMessage.includes('invalid signature')) {
+          // JWT token is invalid/expired - user needs to re-authenticate
+          toast({
+            title: 'Session Expired',
+            description: 'Your session has expired. Please sign in again.',
+            variant: 'destructive',
+          })
+          
+          // Clear invalid auth state and redirect to login
+          logout()
+          setTimeout(() => {
+            router.push('/auth/login')
+          }, 2000)
+        } else {
+          // Other authentication/authorization errors
+          toast({
+            title: 'Authentication Required',
+            description: 'Please sign in to view and manage photos.',
+            variant: 'destructive',
+          })
+        }
+      } else if (error.response?.status === 404) {
+        // Photos not found - this is normal if no photos exist yet
+        setPhotos([])
+        console.log('No photos found for this trip (404) - this is normal')
+        return // Don't show error toast for 404
+      } else if (error.response?.status >= 500) {
+        toast({
+          title: 'Server Error',
+          description: 'Server is experiencing issues. Please try again later.',
+          variant: 'destructive',
+        })
+      } else {
+        toast({
+          title: 'Error',
+          description: error.response?.data?.error || error.message || 'Failed to load photos',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setLoading(false)
     }
@@ -136,70 +187,97 @@ export default function PhotoGallery({ tripId }: PhotoGalleryProps) {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Photo Gallery</span>
-          <Button 
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            variant="outline"
-            size="sm"
-          >
-            <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
-            {uploading ? 'Uploading...' : 'Upload Photo'}
-          </Button>
+          {isAuthenticated ? (
+            <Button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              variant="outline"
+              size="sm"
+            >
+              <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
+              {uploading ? 'Uploading...' : 'Upload Photo'}
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => router.push('/auth/login')}
+              variant="outline"
+              size="sm"
+            >
+              Sign In to Upload
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <input
-          type="file"
-          ref={fileInputRef}
-          className="hidden"
-          accept="image/*"
-          onChange={handleFileSelect}
-        />
-        
-        {photos.length === 0 ? (
+        {!isAuthenticated ? (
           <div className="text-center py-8">
             <PhotoIcon className="h-12 w-12 mx-auto text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No photos</h3>
-            <p className="mt-1 text-sm text-gray-500">Get started by uploading a photo.</p>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Sign in to view photos</h3>
+            <p className="mt-1 text-sm text-gray-500">You need to be signed in to view and upload photos.</p>
             <div className="mt-6">
               <Button 
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                onClick={() => router.push('/auth/login')}
               >
-                <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
-                Upload Photo
+                Sign In
               </Button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {photos.map((photo) => (
-              <div 
-                key={photo.id} 
-                className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer"
-                onClick={() => setSelectedPhoto(photo)}
-              >
-                <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${photo.url}`}
-                  alt={photo.caption || 'Trip photo'}
-                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDelete(photo.id)
-                    }}
+          <>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept="image/*"
+              onChange={handleFileSelect}
+            />
+            
+            {photos.length === 0 ? (
+              <div className="text-center py-8">
+                <PhotoIcon className="h-12 w-12 mx-auto text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No photos</h3>
+                <p className="mt-1 text-sm text-gray-500">Get started by uploading a photo.</p>
+                <div className="mt-6">
+                  <Button 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
                   >
-                    <XMarkIcon className="h-4 w-4" />
+                    <ArrowUpTrayIcon className="h-4 w-4 mr-2" />
+                    Upload Photo
                   </Button>
                 </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {photos.map((photo) => (
+                  <div 
+                    key={photo.id} 
+                    className="relative group aspect-square rounded-lg overflow-hidden cursor-pointer"
+                    onClick={() => setSelectedPhoto(photo)}
+                  >
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}${photo.url}`}
+                      alt={photo.caption || 'Trip photo'}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all flex items-center justify-center">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleDelete(photo.id)
+                        }}
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </CardContent>
       
